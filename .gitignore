@@ -1,0 +1,23 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment & Keys
+.env
+
+# Vector Index & Knowledge Base Data
+models/index.faiss
+models/chunks.pkl
+
+# Data directory contents (keep directory structure if needed)
+data/pdfs/*
+!data/pdfs/.gitkeep
+
+# IDE & Editor files
+.vscode/
+.idea/
+.DS_Store

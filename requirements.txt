@@ -1,0 +1,10 @@
+streamlit
+sentence-transformers
+faiss-cpu
+pypdf
+rank-bm25
+google-genai
+python-dotenv
+numpy
+pandas
+scikit-learn
