@@ -3,7 +3,7 @@ sentence-transformers
 faiss-cpu
 pypdf
 rank-bm25
-google-genai
+google-generativeai
 python-dotenv
 numpy
 pandas
