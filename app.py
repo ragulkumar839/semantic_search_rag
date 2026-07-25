@@ -15,7 +15,7 @@ from src.vector_db import (
 )
 from src.bm25_search import build_bm25
 from src.hybrid_search import hybrid_search
-from src.rag import generate_answer, FALLBACK_MARKER
+from src.rag import generate_answer, FALLBACK_MARKER, get_key_diagnostic, get_last_model_errors
 
 
 # -------------------------
@@ -374,10 +374,19 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Startup Credential Check
 # -------------------------
 
-if not os.environ.get("GOOGLE_API_KEY") and not os.environ.get("GEMINI_API_KEY"):
+def _has_api_key():
+    if os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"):
+        return True
+    try:
+        return bool(st.secrets.get("GOOGLE_API_KEY") or st.secrets.get("GEMINI_API_KEY"))
+    except Exception:
+        return False
+
+if not _has_api_key():
     st.error(
-        "⚠️ No Gemini API key found. Set the `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) "
-        "environment variable before starting the app — answer generation will fail without it."
+        "⚠️ No Gemini API key found. Set `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) as an "
+        "environment variable / `.env` entry for local runs, or under **Settings > Secrets** "
+        "if deployed on Streamlit Community Cloud — answer generation will fail without it."
     )
     st.stop()
 
@@ -544,6 +553,21 @@ source_filter = st.sidebar.selectbox("🎯 Metadata Filter (Document)", doc_opti
 
 st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 st.sidebar.write("🧠 **Embedding**: `all-MiniLM-L6-v2`")
+
+with st.sidebar.expander("🔧 API Diagnostics"):
+    diag = get_key_diagnostic()
+    if diag["found"]:
+        st.success(f"Key detected via {diag['source']}: `{diag['masked']}`")
+    else:
+        st.error(f"No API key detected (checked env vars and st.secrets).")
+
+    errors = get_last_model_errors()
+    if errors:
+        st.caption("Last generation attempt's per-model errors:")
+        for model_name, err in errors:
+            st.text(f"{model_name}: {err[:200]}")
+    else:
+        st.caption("No model errors recorded yet — ask a question to populate this.")
 st.sidebar.write("🔎 **Keyword Engine**: `BM25Okapi`")
 st.sidebar.write("📦 **Vector Store**: `FAISS IndexFlatIP`")
 st.sidebar.write("⚡ **Re-ranker**: `ms-marco-MiniLM-L-6-v2`")
